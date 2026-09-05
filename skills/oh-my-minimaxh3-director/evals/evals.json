@@ -1,0 +1,75 @@
+{
+  "skill_name": "oh-my-minimaxh3-director",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-script-full-pipeline",
+      "prompt": "我有一段 60 秒的短视频剧本（txt 在 outputs/my-story/script.txt）：讲一个咖啡师在打烊后遇到外星人，6 段、每段 10 秒。请用 oh-my-minimaxh3-director 走完整流程：先探测/开隧道，自动分镜生成 storyboard 和 H3 提示词，分配 Ref2VA/T2V 工作流并让我确认参数，然后提交生成并拼成剪映草稿。",
+      "expected_output": "在 outputs/my-story/ 生成 storyboard.md/json、prompts/seg_01..06.txt、workflows/seg_01..06_api.json、jobs/params.json；参数表展示并确认后提交；片段下载到 clips/raw/；最终生成并运行 assemble_jianying_my-story.py，剪映草稿保存成功且 edit/jianying-draft-report.json 存在。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "existing-storyboard-regression",
+      "prompt": "星海圣战-剧本完整包-修订版/sc2-5min-dawn 里已有 storyboard.md 和 prompts/seg_01.txt~seg_30.txt。不要重新分镜，直接用 oh-my-minimaxh3-director 把这些段分配到 H3 工作流并生成参数表（refs 参考图目录已存在）。",
+      "expected_output": "build_workflows.py 读取已有 storyboard/prompts，生成 workflows/seg_01..30_api.json 与 jobs/params.json；有参考图的段路由 ref2va、无图段路由 t2v；参数表 30 行可确认，不重写 storyboard.md。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "param-change-and-invalid-rejection",
+      "prompt": "把 outputs/my-story/storyboard.json 的 seg_03 时长改成 20 秒、seg_04 steps 改成 100，再跑 build_workflows.py；然后把时长改回 12 秒、steps 改成 16 重新跑。",
+      "expected_output": "第一轮后端校验拒绝超范围参数（时长 5-15、steps 4-40）且不生成工作流；第二轮成功生成且 seg_03 length=288 帧、seg_04 steps=16，params.json 反映新值。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "first-use-onboarding",
+      "prompt": "我第一次用 oh-my-minimaxh3-director，想把自己的剧本做成视频。我还没装 ComfyUI，也不知道我的电脑能不能跑 MiniMax H3。",
+      "expected_output": "依次说明用途并询问：是否启用自动更新；询问 ComfyUI 是本地还是云端——本地则探测 8188 并给官网桌面版下载教程，云端则请用户提供网址链接并用 probe_comfy.py --url 验证写入 pipeline-config；运行 check_hardware.py 评估硬件并给出结论；给 ModelScope 模型下载教程；逐个说明用途后询问是否安装 h3-prompt-writing、jianying-editor 与 comfy-mcp；把选择（含 comfyui_location）写入 ~/.oh-my-minimaxh3-director.json。",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "wenwu-storyboard-and-character-sheets",
+      "prompt": "用 oh-my-minimaxh3-director 做一个 30 秒的悬疑短片：深夜便利店店员遇到一个会复读顾客话语的神秘客人。角色是网上已有的原创角色，帮我搜参考图并生成四视图，分镜要上下镜头衔接，提示词用 WenWu 导演模式。",
+      "expected_output": "先询问/确认故事要点；生成 30s 衔接分镜（文戏密度约 8-12 镜）；搜索并下载参考角色图到 refs/，生成四视图（front/side/back/face）；storyboard.json 的 prompt_mode=wenwu 且 characters 登记四视图；prompts/seg_XX.txt 按 WenWu 成片书写法输出中文分镜提示词，镜头密度按 30s 计算，镜头间写明衔接锚点。",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "unattended-batch-confirmation",
+      "prompt": "参数确认完了，开始批量跑 30 段吧。我要去睡觉，跑完如果还没到 23:00 就自动关机。",
+      "expected_output": "提交前先确认无人值守：把 23:00 写入 jobs/run_plan.json（unattended=true、shutdown_at=23:00、agreed_by_user=true）；启动 monitor_resources.py 后台监控（远程 URL 或本机 GPU，阈值 90/95，--shutdown-at 23:00 --allow-shutdown）；再执行 submit_jobs.py 与 monitor_jobs.py；资源达到 stop 阈值时暂停并报告，23:00 触发关机提示/执行。",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "autodl-cloud-onboarding",
+      "prompt": "我的电脑只有核显跑不动 H3，想用云端算力，但我从没用过 AutoDL。帮我开通一个能跑 ComfyUI 的实例，并说明大概费用。",
+      "expected_output": "按 references/autodl-cloud.md 引导：告知注册与 Token 获取地址（https://www.autodl.com/console/center/settings/token）；推荐控制台方式选择 ComfyUI 应用与按量计费、起步 5090-32G；说明按量计费只有开机才收费、示例价格与磁盘建议；实例启动后把服务地址交回 skill 用 probe_comfy.py --url 验证写入 pipeline-config；可选 API 方式（create/power_on/power_off/release 与规格 ID 表）；Token 写入 .config/autodl-config.json 且不进 git。",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "workflow-scan-and-user-selection",
+      "prompt": "项目分镜做好了，先别急着生成。扫一下我已有的工作流，告诉我哪个适合这个 Ref2VA 项目，我选好了再构建。",
+      "expected_output": "运行 scan_workflows.py 扫描（项目 workflows/templates、工作区 workflows/pv1min_workflows、templates_dir），输出候选清单（格式/模式/参考图/Turbo/模型）；展示表格询问用户选择，禁止直接创建新工作流；用户选定后把映射写入 storyboard.json 的 meta.workflow_map 或 segments[].template，再运行 build_workflows.py；UI 格式候选提示先转换，不自动改写用户文件。",
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "api-error-diagnostics",
+      "prompt": "提交一直报 node_errors，提示 UNETLoader 找不到模型；换了个隧道又 SSL 报错。别光重试，帮我查一下到底什么问题。",
+      "expected_output": "按 references/api-and-mcp.md 排查表定位：node_errors 读 class_type 与消息，用 /object_info/UNETLoader 核对远程模型文件名并修正模板字段；SSL UNEXPECTED_EOF 属隧道抖动，重跑 probe_comfy.py 或 ensure_cloudflared.py 换隧道/回退直连；连续 3 次无变化停止并向用户报告，不盲目重试浪费 token。",
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "storyboard-report-precision",
+      "prompt": "分镜和提示词都写完了，把剧本汇报给我看看。",
+      "expected_output": "按 storyboard-schema.md 的「分镜汇报格式」汇报：逐镜头给出起止时间（几秒到几秒）、画面内容、对白内容，时间连续且首镜 00:00 开始、末镜结束于总时长；不使用“开场/中间/结尾”式宽泛概括；用户指出要改的镜头后只重述该镜头及其前后衔接。",
+      "files": []
+    }
+  ]
+}

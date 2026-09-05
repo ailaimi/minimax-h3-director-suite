@@ -1,0 +1,4 @@
+interface:
+  display_name: "ComfyUI H3 本地导演执行器"
+  short_description: "本地低成本预检、分镜提交、断点恢复与逐镜头质量验收工具"
+  default_prompt: "Use $comfyui-h3-local-runner to preflight and run this H3 project locally with beat-level QC and resume support."
